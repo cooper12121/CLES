@@ -1,0 +1,1 @@
+## We created a role mapping table, as described in the paper, to facilitate the normalization of roles.
