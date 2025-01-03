@@ -17,20 +17,9 @@ from peft.tuners.lora import LoraLayer
 from transformers.trainer_utils import PREFIX_CHECKPOINT_DIR
 
 IGNORE_INDEX = -100
-# EOT_TOKEN = "<|EOT|>"
 logger = logging.getLogger(__name__)
 
 
-
-t_features = datasets.Features({
-    
-    'history_input': datasets.Sequence(datasets.Value('string')),
-    'history_output': datasets.Sequence(datasets.Value('string')),
-    'instruction': datasets.Value('string'),
-    'output': datasets.Value('string'),
-   
-    # 'type': datasets.Value('string')
-})
 
 
 def print_rank_0(message):
@@ -191,46 +180,23 @@ class DataCollatorForSupervisedDataset(object):
         )
 
 
-def build_instruction_prompt_llama3(examples,tokenizer):
-    """ llama3模型 """
-    PROMPT_FORMAT_SYSTEM_llama3 = "<|start_header_id|>system<|end_header_id|>\n\n{}<|eot_id|>"
-    PROMPT_FORMAT_MULTI_llama3 = "<|start_header_id|>user<|end_header_id|>\n\n{instruction}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n{output}<|eot_id|>"
-    PROMPT_FORMAT_SINGLE_llama3 = "<|start_header_id|>user<|end_header_id|>\n\n{}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
-
-    def process_data_xP3mt():
-        sources = []
-        for inputs in examples['input']:
-            # if instruction=="":
-            system_msg = PROMPT_FORMAT_SYSTEM_llama3.format("You are a helpful assistant")
-            #     system_msg = ""
-            # else:
-            #     system_msg = PROMPT_FORMAT_SYSTEM_llama3.format(instruction)
-            user_msg = PROMPT_FORMAT_SINGLE_llama3.format(inputs)
-
-            sources.append(tokenizer.bos_token+system_msg+user_msg)
-        targets = [output+"<|eot_id|>"+tokenizer.eos_token for output in examples['output']]
-        return sources,targets
-    
-    sources,targets = process_data_xP3mt()
-    # print_rank_0(f"{sources[0]}{targets[0]}\n\n{type(sources)},{len(sources)}")
-    data_dict = preprocess(sources, targets, tokenizer)
-    return data_dict
 
 def build_instruction_prompt_llama2(examples,tokenizer):
 
-    PROMPT_FORMAT_SINGLE_llama2 = "<s>Human: {}\n</s><s>Assistant: "
+    PROMPT_FORMAT_SYSTEM_llama2 = '<<SYS>>\n' +"你是一个乐于助人的人工智能助手"+ '\n<</SYS>>\n\n'
+    PROMPT_FORMAT_SINGLE_llama2 = "<s>[INST] {} [/INST]"
 
     sources = []
-    for intput in examples['input']:
-        sources.append(tokenizer.bos_token+PROMPT_FORMAT_SINGLE_llama2.format(input))
-    targets = [output+"\n</s>"+tokenizer.eos_token for output in examples['output']]
+    for instruction in examples['input']:
+        sources.append(tokenizer.bos_token+PROMPT_FORMAT_SYSTEM_llama2+PROMPT_FORMAT_SINGLE_llama2.format(instruction))
+    targets = [' '+output+' '+tokenizer.eos_token for output in examples['output']]
     print_rank_0(f"{sources[0]}{targets[0]}\n\n{type(sources)},{len(sources)}")
     data_dict = preprocess(sources, targets, tokenizer)
     return data_dict
 
 def train_tokenize_function(examples, tokenizer):
     
-    return build_instruction_prompt_llama3(examples,tokenizer)
+    return build_instruction_prompt_llama2(examples,tokenizer)
 
 def build_model(model_args, training_args, checkpoint_dir):
     if not model_args.use_lora: assert model_args.bits in [16, 32]
