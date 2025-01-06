@@ -3,17 +3,15 @@
 对于事件实体，如果同义实体有多种出现形式，请选中最通过的表示表示。
 对于实体的role信息， 如果同一个实体存在多个role，选择最具有代表性的role最为最终role. 
 根据以下json格式输出:
-```
-{
-  "type": "事件类型",
-  "trigger": "事件触发词",
-  "arguments": [
-    {"role": "角色1", "mention": "实体1"},
-    {"role": "角色2", "mention": "实体2"}
+{{
+  'type': '事件类型',
+  'trigger': '事件触发词',
+  'arguments': [
+    {{'role': '角色1', 'mention': '实体1'}},
+    {{'role': '角色2', 'mention': '实体2'}}"
     ...
   ]
-}
-```
+}}
 
 # 输入文档:
 {all_documents}
