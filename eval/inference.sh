@@ -9,7 +9,7 @@ CUDA_VISIBLE_DEVICES=0,3 accelerate launch \
     --num_machines 1 \
     --num_processes 2 \
     --mixed_precision=bf16 \
-    ./inference2.py \
+    ./inference.py \
     --model ${MODEL_PATH} \
     --batch_size 1 \
     --data ${DATA_PATH} \
